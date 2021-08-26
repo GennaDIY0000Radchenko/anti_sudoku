@@ -89,7 +89,7 @@ def clean_possible(m, m_p):
     return m, m_p
 
 
-def solve_0(m, m_p):
+def rules(m, m_p):
     m, m_p = clean_possible(m, m_p)
     cont = 0
     for row in range(9):
@@ -105,13 +105,13 @@ def solve_0(m, m_p):
                 m, m_p = clean_p_r_c(m, m_p, row, col)
 
     if cont:
-        return solve_0(m, m_p)
+        return rules(m, m_p)
     else:
         return m, m_p
 
 
 def nowhere_else(m, m_p):
-    cont = 0
+    repeat = 0
     for row in range(9):
         d_row = {i: 0 for i in range(1, 10)}
         for c in range(9):
@@ -122,7 +122,7 @@ def nowhere_else(m, m_p):
         list_of_lonely_num = []
         for i in range(9):
             if d_row[i + 1] == 1:
-                cont = 1
+                repeat = 1
                 list_of_lonely_num.append(i + 1)
 
         for lonely in range(len(list_of_lonely_num)):
@@ -141,7 +141,7 @@ def nowhere_else(m, m_p):
         list_of_lonely_num = []
         for i in range(9):
             if d_col[i + 1] == 1:
-                cont = 1
+                repeat = 1
                 list_of_lonely_num.append(i + 1)
 
         for lonely in range(len(list_of_lonely_num)):
@@ -162,7 +162,7 @@ def nowhere_else(m, m_p):
             list_of_lonely_num = []
             for i in range(9):
                 if d_sqr[i + 1] == 1:
-                    cont = 1
+                    repeat = 1
                     list_of_lonely_num.append(i + 1)
 
             for lonely in range(len(list_of_lonely_num)):
@@ -172,7 +172,7 @@ def nowhere_else(m, m_p):
                             m[row][col] = list_of_lonely_num[lonely]
                             m, m_p = clean_p_r_c(m, m_p, row, col)
 
-    if cont:
+    if repeat:
         return nowhere_else(m, m_p)
     else:
         return m, m_p
@@ -207,7 +207,7 @@ def pairs(m, m_p):
                     if (i // 9) // 3 == find_r // 3:
                         for row in range(((i // 9) // 3) * 3, ((i // 9) // 3) * 3 + 3):
                             for col in range(((i % 9) // 3) * 3, ((i % 9) // 3) * 3 + 3):
-                                if row != ((i // 9) or find_r) and col != (i % 9):
+                                if (row != (i // 9) and col != (i % 9)) or (row != find_r and col != (i % 9)):
                                     m_p[row][col][list_of_index[0]], m_p[row][col][list_of_index[1]] = 0, 0
                 # in row
                 else:
@@ -235,9 +235,9 @@ def pairs(m, m_p):
                         if (i % 9) // 3 == find_c // 3:
                             for row in range(((i // 9) // 3) * 3, ((i // 9) // 3) * 3 + 3):
                                 for col in range(((i % 9) // 3) * 3, ((i % 9) // 3) * 3 + 3):
-                                    if col != ((i % 9) or find_c) and row != (i // 9):
+                                    if (col != (i % 9) and row != (i // 9)) or (col != find_c and row != (i // 9)):
                                         m_p[row][col][list_of_index[0]], m_p[row][col][list_of_index[1]] = 0, 0
-                # in square
+                    # in square
                     else:
                         for row in range(((i // 9) // 3) * 3, ((i // 9) // 3) * 3 + 3):
                             for col in range(((i % 9) // 3) * 3, ((i % 9) // 3) * 3 + 3):
@@ -259,10 +259,114 @@ def pairs(m, m_p):
                                     list_of_index.append(num)
                             for row in range(((i // 9) // 3) * 3, ((i // 9) // 3) * 3 + 3):
                                 for col in range(((i % 9) // 3) * 3, ((i % 9) // 3) * 3 + 3):
-                                    if (row != ((i // 9) or find_r)) and (col != ((i % 9) or find_c)):
+                                    if (row != (i // 9) and col != (i % 9)) or (row != find_r and col != find_c):
                                         m_p[row][col][list_of_index[0]], m_p[row][col][list_of_index[1]] = 0, 0
 
     return m, m_p
+
+
+def hiden_pairs(m, m_p):
+    # hiden pair in row
+    for r_1 in range(9):
+        for c_1 in range(9):
+            for c_2 in range(c_1 + 1, 9):
+                its_hiden_pair = 1
+                intersect_num = 0
+                inters_num_index = []
+                for i in range(9):
+                    if m_p[r_1][c_1][i] == m_p[r_1][c_2][i] and m_p[r_1][c_1][i] != 0:
+                        intersect_num += 1
+                        inters_num_index.append(i)
+                if intersect_num == 2:
+                    for c in range(9):
+                        if c != c_1 and c != c_2:
+                            if m_p[r_1][c][inters_num_index[0]] != 0 or m_p[r_1][c][inters_num_index[1]] != 0:
+                                its_hiden_pair = 0
+                                break
+                    if its_hiden_pair:
+                        for i in range(9):
+                            if i != inters_num_index[0] and i != inters_num_index[1]:
+                                m_p[r_1][c_1][i], m_p[r_1][c_2][i] = 0, 0
+                        # if in same square
+                        if c_1 // 3 == c_2 // 3:
+                            for r in range((r_1 // 3) * 3, (r_1 // 3) * 3 + 3):
+                                for c in range((c_1 // 3) * 3, (c_1 // 3) * 3 + 3):
+                                    if m[r][c] == 0:
+                                        if (r != r_1 and c != c_1) or (r != r_1 and c != c_2):
+                                            m_p[r][c][inters_num_index[0]], m_p[r][c][inters_num_index[1]] = 0, 0
+    # hiden pair in column
+    for c_1 in range(9):
+        for r_1 in range(9):
+            for r_2 in range(r_1 + 1, 9):
+                its_hiden_pair = 1
+                intersect_num = 0
+                inters_num_index = []
+                for i in range(9):
+                    if m_p[r_1][c_1][i] == m_p[r_2][c_1][i] and m_p[r_1][c_1][i] != 0:
+                        intersect_num += 1
+                        inters_num_index.append(i)
+                if intersect_num == 2:
+                    for r in range(9):
+                        if r != r_1 and r != r_2:
+                            if m_p[r][c_1][inters_num_index[0]] != 0 or m_p[r][c_1][inters_num_index[1]] != 0:
+                                its_hiden_pair = 0
+                                break
+                    if its_hiden_pair:
+                        for i in range(9):
+                            if i != inters_num_index[0] and i != inters_num_index[1]:
+                                m_p[r_1][c_1][i], m_p[r_2][c_1][i] = 0, 0
+                                # if in same square
+                                if r_1 // 3 == r_2 // 3:
+                                    for r in range((r_1 // 3) * 3, (r_1 // 3) * 3 + 3):
+                                        for c in range((c_1 // 3) * 3, (c_1 // 3) * 3 + 3):
+                                            if m[r][c] == 0:
+                                                if (r != r_1 and c != c_1) or (r != r_2 and c != c_1):
+                                                    m_p[r][c][inters_num_index[0]], m_p[r][c][inters_num_index[1]] = 0, 0
+    # hiden pair in square
+    for row in range(3):
+        for col in range(3):
+            for a in range(9):
+                if m[row * 3 + a // 3][col * 3 + a % 3] == 0:
+                    for b in range(a + 1, 9):
+                        if m[row * 3 + b // 3][col * 3 + b % 3] == 0:
+                            r_1, c_1, r_2, c_2 = row * 3 + a // 3, col * 3 + a % 3, row * 3 + b // 3, col * 3 + b % 3
+                            its_hiden_pair = 1
+                            intersect_num = 0
+                            inters_num_index = []
+                            for i in range(9):
+                                if m_p[r_1][c_1][i] == m_p[r_2][c_2][i] and m_p[r_1][c_1][i] != 0:
+                                    intersect_num += 1
+                                    inters_num_index.append(i)
+                            if intersect_num == 2:
+                                for i in range(9):
+                                    if i != a and i != b:
+                                        if m_p[row * 3 + i // 3][col * 3 + i % 3][inters_num_index[0]] != 0 or \
+                                                m_p[row * 3 + i // 3][col * 3 + i % 3][inters_num_index[1]] != 0:
+                                            its_hiden_pair = 0
+                                            break
+                                if its_hiden_pair:
+                                    for i in range(9):
+                                        if i != inters_num_index[0] and i != inters_num_index[1]:
+                                            m_p[r_1][c_1][i], m_p[r_2][c_2][i] = 0, 0
+
+    return m, m_p
+
+
+def main(m, m_p):
+    save_m, save_m_p = m, m_p
+
+    m, m_p = rules(m, m_p)
+
+    m, m_p = nowhere_else(m, m_p)
+
+    m, m_p = pairs(m, m_p)
+
+    m, m_p = hiden_pairs(m, m_p)
+
+    if save_m != m and save_m_p != m_p:
+        return main(m, m_p)
+    else:
+        return m, m_p
 
 
 matrix_possible = [[[p + 1 for p in range(9)] for ii in range(9)] for i in range(9)]
@@ -280,49 +384,11 @@ matrix_given = \
         [1, 0, 9, 0, 0, 4, 0, 0, 0],
     ]
 
-
 # start
 print_matrix(matrix_given)
 print("-" * 30)
 
-# by rules
-matrix_given, matrix_possible = solve_0(matrix_given, matrix_possible)
-
-print_matrix(matrix_given)
-print_matrix(matrix_possible)
-print("-" * 30)
-
-# by noWhere else
-matrix_given, matrix_possible = nowhere_else(matrix_given, matrix_possible)
-
-print_matrix(matrix_given)
-print_matrix(matrix_possible)
-print("-" * 30)
-
-# by pairs
-matrix_given, matrix_possible = pairs(matrix_given, matrix_possible)
-
-print_matrix(matrix_given)
-print_matrix(matrix_possible)
-print("-" * 30)
-
-
-print("#"*30)
-
-
-# by rules
-matrix_given, matrix_possible = solve_0(matrix_given, matrix_possible)
-
-print_matrix(matrix_given)
-print_matrix(matrix_possible)
-print("-" * 30)
-
-# by noWhere else
-matrix_given, matrix_possible = nowhere_else(matrix_given, matrix_possible)
-
-print_matrix(matrix_given)
-print_matrix(matrix_possible)
-print("-" * 30)
+matrix_given, matrix_possible = main(matrix_given, matrix_possible)
 
 # what`s left
 print_matrix(matrix_given)
